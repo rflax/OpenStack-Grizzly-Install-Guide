@@ -91,6 +91,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    dpkg -i nicira-ovs-hypervisor-node*.deb
    ovs-integrate nics-to-bridge eth1
   
+   # Add the following to /etc/rc.local before 'exit 0'
    ifconfig eth1 0.0.0.0 up
    ifconfig breth1 10.10.1.200 netmask 255.255.255.0 up
 
@@ -818,16 +819,11 @@ You should also be able to do all of these things using the OpenStack dashboard 
    apt-get install -y dkms libssl0.9.8
    dpkg -i openvswitch-*.deb
    dpkg -i nicira-ovs-hypervisor-node*.deb
-   ovs-integrate nics-to-bridge eth0 eth1
+   ovs-integrate nics-to-bridge eth1
   
    # Add the following to /etc/rc.local before 'exit 0'
-   ifconfig eth0 0.0.0.0 up
-   ifconfig breth0 10.127.1.201 netmask 255.255.255.0 up
-
    ifconfig eth1 0.0.0.0 up
    ifconfig breth1 10.10.1.201 netmask 255.255.255.0 up
-
-   route add default gw 10.127.1.1
 
 * Verify Open vSwitch configuration to this point::
 
@@ -842,13 +838,6 @@ You should also be able to do all of these things using the OpenStack dashboard 
       Port "breth1"
           Interface "breth1"
               type: internal
-   Bridge "breth0"
-      fail_mode: standalone
-      Port "breth0"
-          Interface "breth0"
-              type: internal
-      Port "eth0"
-          Interface "eth0"
    Bridge br-int
       fail_mode: secure
       Port br-int
