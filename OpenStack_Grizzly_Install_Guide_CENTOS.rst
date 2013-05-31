@@ -55,49 +55,43 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    rm RPM-GPG-KEY-EPEL-6
    wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
    rpm -ihv epel-release-6-8.noarch.rpm
-   yum --enablerepo=epel install php-pdo -y
-   yum update
-   yum upgrade
+   yum --enablerepo=epel install perl -y
+
 
 * Update your system::
-
-   apt-get update
-   apt-get upgrade
-   apt-get dist-upgrade
+   yum update
+   yum upgrade
 
 2.2.Networking
 ------------
 
-* Only one NIC should have an internet access (/etc/network/interfaces) :: 
+* Only one NIC should have an internet access (/etc/sysconfig/network-scripts) :: 
 
-   #For Exposing OpenStack API over the internet - management network
-   auto eth1
-   iface eth1 inet static
-   address 10.127.1.200
-   netmask 255.255.255.0
-   gateway 10.127.1.1
-   dns-nameservers 8.8.8.8
-
-   #Not internet connected(used for OpenStack management) - data network
-   auto eth0
-   iface eth0 inet static
-   address 10.10.1.200
-   netmask 255.255.255.0
+   #For Exposing OpenStack API over the internet - management network add/configure ifcfg-eth0
+   
+   BOOTPROTO=static
+   IPADDR=10.127.1.200
+   NETMASK=255.255.255.0
+   GATEWAY=10.127.1.1
+   
+   #Not internet connected(used for OpenStack management) - data network add/configure ifcfg-eth1
+   BOOTPROTO=static
+   IPADDR=10.10.1.200
+   NETMASK=255.255.255.0
 
 * Restart the networking service::
 
-   service networking restart
+   service network restart
 
 * Install Open vSwitch (Use the Nicira version from the nicira.com support web site)::
 
-   download nvp-ovs-<version_string>-ubuntu_precise_amd64.gz
+   download nvp-ovs-<version_string>-rhel61_x86_64.gz
    tar -xzvf nvp-ovs*.gz
-   apt-get install -y dkms libssl0.9.8
-   dpkg -i openvswitch-*.deb
-   dpkg -i nicira-ovs-hypervisor-node*.deb
+   rpm -ihv kmod*.rpm openvswitch-*.rpm
+   rpm -ihv nicira-ovs-hypervisor-node*.rpm
    ovs-integrate nics-to-bridge eth1
   
-   # Add the following to /etc/rc.local before 'exit 0'
+   # Add the following to /etc/rc.local 
    ifconfig eth1 0.0.0.0 up
    ifconfig breth1 10.10.1.200 netmask 255.255.255.0 up
 
