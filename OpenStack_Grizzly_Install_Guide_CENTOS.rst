@@ -46,7 +46,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
    sudo su
 
-* Add Grizzly repositories::
+* Add Grizzly EPEL repository::
 
    yum update
    yum install wget
