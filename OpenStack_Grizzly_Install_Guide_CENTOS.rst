@@ -4,7 +4,7 @@
 
 :Version: 1.0.0
 :Source: https://github.com/rflax/OpenStack-Grizzly-Install-Guide
-:Keywords: Single node OpenStack, Grizzly, Quantum, Nova, Keystone, Glance, Horizon, Cinder, Nicira, NVP, KVM, Ubuntu Server 12.04 (64 bits).
+:Keywords: Single node OpenStack, Grizzly, Quantum, Nova, Keystone, Glance, Horizon, Cinder, Nicira, NVP, KVM, CentOS Server 6.4 (x86_64).
 
 
 Table of Contents
@@ -36,22 +36,28 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 :Node Role: NICs
 :Single Node: eth0 (10.127.1.200), eth1 (10.10.1.200)
 
-**Note** Always use dpkg -s <packagename> to make sure you are using grizzly packages (version : 2013.1)
-
 2. Preparing your node
 ===============
 
-2.1. Preparing Ubuntu
+2.1. Preparing CentOS
 -----------------
 
-* After you install Ubuntu 12.04 Server 64bits, Go in sudo mode and don't leave it until the end of this guide::
+* After you install CentOS Server 6.4 (x86_64), Go in sudo mode and don't leave it until the end of this guide::
 
    sudo su
 
 * Add Grizzly repositories::
 
-   apt-get install ubuntu-cloud-keyring python-software-properties software-properties-common python-keyring
-   echo deb http://ubuntu-cloud.archive.canonical.com/ubuntu precise-updates/grizzly main >> /etc/apt/sources.list.d/grizzly.list
+   yum update
+   yum install wget
+   wget http://ftp.riken.jp/Linux/fedora/epel/RPM-GPG-KEY-EPEL-6
+   rpm --import RPM-GPG-KEY-EPEL-6
+   rm RPM-GPG-KEY-EPEL-6
+   wget http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+   rpm -ihv epel-release-6-8.noarch.rpm
+   yum --enablerepo=epel install php-pdo -y
+   yum update
+   yum upgrade
 
 * Update your system::
 
