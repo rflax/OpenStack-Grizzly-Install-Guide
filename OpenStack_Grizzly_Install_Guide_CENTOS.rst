@@ -136,27 +136,18 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Install MySQL and specify a password for the root user::
 
-   apt-get install -y mysql-server python-mysqldb
-
-* Configure mysql to accept all incoming requests::
-
-   sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/my.cnf
-   service mysql restart
+   yum install -y mysql-server python-mysqldb
 
 * Install RabbitMQ::
 
-   apt-get install -y rabbitmq-server 
+   yum install -y rabbitmq-server 
 
 * Install NTP service::
 
-   apt-get install -y ntp
+   yum install -y ntp
  
 2.5. Others
 -------------------
-
-* Install other services::
-
-   apt-get install -y vlan bridge-utils
 
 * Enable IP_Forwarding::
 
@@ -170,17 +161,19 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Start by the keystone packages::
 
-   apt-get install -y keystone
+   yum install -y openstack-keystone
 
 * Verify your keystone is running::
 
-   service keystone status
+   service openstack-keystone start
+   service openstack-keystone status
 
 * Create a new MySQL database for keystone::
 
    mysql -u root -p
    CREATE DATABASE keystone;
    GRANT ALL ON keystone.* TO 'keystoneUser'@'%' IDENTIFIED BY 'keystonePass';
+   GRANT ALL on keystone.* TO 'keystoneUser'@'<hostname>' IDENTIFIED BY 'keystonePass';
    quit;
 
 * Adapt the connection attribute in the /etc/keystone/keystone.conf to the new database::
@@ -189,7 +182,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart the identity service then synchronize the database::
 
-   service keystone restart
+   service openstack-keystone restart
    keystone-manage db_sync
 
 * Fill up the keystone database using the two scripts available in the `Scripts folder <https://github.com/mseknibilel/OpenStack-Grizzly-Install-Guide/tree/master/KeystoneScripts>`_ of this git repository::
@@ -231,14 +224,16 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Verify your glance services are running::
 
-   service glance-api status
-   service glance-registry status
+   cd /etc/init.d
+   for s in $( ls openstack-glance-* ); do service $s restart; done
+   for s in $( ls openstack-glance-* ); do service $s status; done
 
 * Create a new MySQL database for Glance::
 
    mysql -u root -p
    CREATE DATABASE glance;
    GRANT ALL ON glance.* TO 'glanceUser'@'%' IDENTIFIED BY 'glancePass';
+   GRANT ALL ON glance.* TO 'glanceUser'@'<hostname>' IDENTIFIED BY 'glancePass';
    quit;
 
 * Update /etc/glance/glance-api-paste.ini with::
@@ -284,7 +279,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart the glance-api and glance-registry services::
 
-   service glance-api restart; service glance-registry restart
+   service openstack-glance-api restart; service openstack-glance-registry restart
 
 * Synchronize the glance database::
 
@@ -292,17 +287,18 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart the services again to take into account the new modifications::
 
-   service glance-registry restart; service glance-api restart
+   service openstack-glance-registry restart; service openstack-glance-api restart
 
 * To test Glance, upload the cirros cloud image directly from the internet::
 
-   glance image-create --name myFirstImage --is-public true --container-format bare --disk-format qcow2 --location https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
-
+   wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
+   glance image-create --name cirros-0.3.0-cloudimg --is-public true --container-format bare --disk-format qcow2 < cirros-0.3.0-x86_64-disk.img
+   
 * Now list the image to see what you have just uploaded::
 
    glance image-list
 
-5. Quantum
+5. Quantum  -- GOT THIS FAR!!
 =============
 
 * Install the Quantum components::
