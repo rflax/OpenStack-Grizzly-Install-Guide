@@ -298,13 +298,14 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
    glance image-list
 
-5. Quantum  -- GOT THIS FAR!!
+5. Quantum
 =============
 
-
+* Obtain Quantum RPMs from Nicira::
+   
 * Install the Quantum components::
 
-   apt-get install -y quantum-server quantum-plugin-nicira dnsmasq quantum-dhcp-agent 
+   install -y quantum-server quantum-plugin-nicira dnsmasq quantum-dhcp-agent 
 
 * Create a database::
 
