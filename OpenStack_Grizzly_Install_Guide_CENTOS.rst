@@ -301,6 +301,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 5. Quantum  -- GOT THIS FAR!!
 =============
 
+
 * Install the Quantum components::
 
    apt-get install -y quantum-server quantum-plugin-nicira dnsmasq quantum-dhcp-agent 
