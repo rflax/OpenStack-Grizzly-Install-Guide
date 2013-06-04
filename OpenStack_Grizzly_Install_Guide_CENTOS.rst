@@ -59,6 +59,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 
 * Update your system::
+
    yum update
    yum upgrade
 
