@@ -562,11 +562,16 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Install the required packages::
 
-   yum install -y openstack-cinder
-   chkconfig openstack-cinder-api on
-   chkconfig openstack-cinder-scheduler on
-   chkconfig openstack-cinder-volume on
-   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do service $i start; cd; done
+   apt-get install -y cinder-api cinder-scheduler cinder-volume iscsitarget open-iscsi iscsitarget-dkms
+
+* Configure the iscsi services::
+
+   sed -i 's/false/true/g' /etc/default/iscsitarget
+
+* Restart the services::
+   
+   service iscsitarget start
+   service open-iscsi start
 
 * Prepare a Mysql database for Cinder::
 
@@ -609,21 +614,33 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Finally, don't forget to create a volumegroup and name it cinder-volumes::
 
-  dd if=/dev/zero of=/var/lib/nova/cinder-volumes.img bs=1M seek=20k count=0
-  vgcreate cinder-volumes $(losetup --show -f /var/lib/nova/cinder-volumes.img)
+   dd if=/dev/zero of=cinder-volumes bs=1 count=0 seek=2G
+   losetup /dev/loop2 cinder-volumes
+   fdisk /dev/loop2
+   #Type in the followings:
+   n
+   p
+   1
+   ENTER
+   ENTER
+   t
+   8e
+   w
 
-* Update /etc/rc.local as follows to enable this volume upon reboot.
+* Proceed to create the physical volume then the volume group::
 
-  # add the following line to /etc/rc.local before the 'exit 0' line
-  losetup /dev/loop2 /var/lib/cinder/volumes/cinder-volumes
+   pvcreate /dev/loop2
+   vgcreate cinder-volumes /dev/loop2
+
+**Note:** Beware that this volume group gets lost after a system reboot. (Click `Here <https://github.com/mseknibilel/OpenStack-Folsom-Install-guide/blob/master/Tricks%26Ideas/load_volume_group_after_system_reboot.rst>`_ to know how to load it after a reboot) 
 
 * Restart the cinder services::
 
-   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do sudo service $i restart; done
+   cd /etc/init.d/; for i in $( ls cinder-* ); do sudo service $i restart; done
 
 * Verify if cinder services are running::
 
-   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do sudo service $i status; done
+   cd /etc/init.d/; for i in $( ls cinder-* ); do sudo service $i status; done
 
 8. Horizon
 ===========
