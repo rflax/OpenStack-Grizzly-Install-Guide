@@ -472,7 +472,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
    [filter:authtoken]
    paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
-   auth_host = 10.10.1.200
+   auth_host = 10.127.1.200
    auth_port = 35357
    auth_protocol = http
    admin_tenant_name = service
@@ -491,8 +491,8 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    verbose=True
    api_paste_config=/etc/nova/api-paste.ini
    compute_scheduler_driver=nova.scheduler.simple.SimpleScheduler
-   rabbit_host=10.10.1.200
-   nova_url=http://10.10.1.200:8774/v1.1/
+   rabbit_host=10.127.1.200
+   nova_url=http://10.127.1.200:8774/v1.1/
    sql_connection=mysql://novaUser:novaPass@10.10.1.200/nova
    root_helper=sudo nova-rootwrap /etc/nova/rootwrap.conf
 
@@ -501,14 +501,14 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    auth_strategy=keystone
 
    # Imaging service
-   glance_api_servers=10.10.1.200:9292
+   glance_api_servers=10.127.1.200:9292
    image_service=nova.image.glance.GlanceImageService
 
    # Vnc configuration
    novnc_enabled=true
    novncproxy_base_url=http://10.127.1.200:6080/vnc_auto.html
    novncproxy_port=6080
-   vncserver_proxyclient_address=10.10.1.200
+   vncserver_proxyclient_address=10.127.1.200
    vncserver_listen=0.0.0.0
    
    # Metadata
@@ -517,15 +517,15 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    
    # Network settings
    network_api_class=nova.network.quantumv2.api.API
-   quantum_url=http://10.10.1.200:9696
+   quantum_url=http://10.127.1.200:9696
    quantum_auth_strategy=keystone
    quantum_admin_tenant_name=service
    quantum_admin_username=quantum
    quantum_admin_password=service_pass
-   quantum_admin_auth_url=http://10.10.1.200:35357/v2.0
-   libvirt_vif_driver=nova.virt.libvirt.vif.QuantumLinuxBridgeVIFDriver
-   linuxnet_interface_driver=nova.network.linux_net.LinuxBridgeInterfaceDriver
-   firewall_driver=nova.virt.libvirt.firewall.IptablesFirewallDriver
+   quantum_admin_auth_url=http://10.127.1.200:35357/v2.0
+   libvirt_vif_driver=nova.virt.libvirt.vif.LibvirtOpenVswitchDriver
+   linuxnet_interface_driver=nova.network.linux_net.LinuxOVSInterfaceDriver
+   firewall_driver=nova.virt.firewall.NoopFirewallDriver
 
    # Compute #
    compute_driver=libvirt.LibvirtDriver
@@ -539,8 +539,11 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    [DEFAULT]
    libvirt_type=kvm
    compute_driver=libvirt.LibvirtDriver
-   libvirt_vif_type=ethernet
-   libvirt_vif_driver=nova.virt.libvirt.vif.QuantumLinuxBridgeVIFDriver
+   libvirt_ovs_bridge=br-int
+   libvirt_vif_type=Ethernet
+   libvirt_vif_driver=nova.virt.libvirt.vif.LibvirtOpenVswitchDriver
+   libvirt_use_virtio_for_bridges=True
+   allow_admin_api=True
     
 * Synchronize your database::
 
@@ -548,7 +551,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart nova-* services::
 
-   cd /etc/init.d/; for i in $( ls nova-* ); do sudo service $i restart; done   
+   cd /etc/init.d/; for i in $( ls openstack-nova-* ); do sudo service $i restart; done   
 
 * Check for the smiling faces on nova-* services to confirm your installation::
 
@@ -559,22 +562,18 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Install the required packages::
 
-   apt-get install -y cinder-api cinder-scheduler cinder-volume iscsitarget open-iscsi iscsitarget-dkms
-
-* Configure the iscsi services::
-
-   sed -i 's/false/true/g' /etc/default/iscsitarget
-
-* Restart the services::
-   
-   service iscsitarget start
-   service open-iscsi start
+   yum install -y openstack-cinder
+   chkconfig openstack-cinder-api on
+   chkconfig openstack-cinder-scheduler on
+   chkconfig openstack-cinder-volume on
+   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do service $i start; cd; done
 
 * Prepare a Mysql database for Cinder::
 
    mysql -u root -p
    CREATE DATABASE cinder;
    GRANT ALL ON cinder.* TO 'cinderUser'@'%' IDENTIFIED BY 'cinderPass';
+   GRANT ALL ON cinder.* TO 'cinderUser'@'<hostname>' IDENTIFIED BY 'cinderPass';
    quit;
 
 * Configure /etc/cinder/api-paste.ini like the following::
@@ -584,7 +583,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    service_protocol = http
    service_host = 10.127.1.200
    service_port = 5000
-   auth_host = 10.10.1.200
+   auth_host = 10.127.1.200
    auth_port = 35357
    auth_protocol = http
    admin_tenant_name = service
@@ -610,24 +609,8 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Finally, don't forget to create a volumegroup and name it cinder-volumes::
 
-   cd /var/lib/cinder/volumes
-   dd if=/dev/zero of=cinder-volumes bs=1 count=0 seek=2G
-   losetup /dev/loop2 cinder-volumes
-   fdisk /dev/loop2
-   #Type in the followings:
-   n
-   p
-   1
-   ENTER
-   ENTER
-   t
-   8e
-   w
-
-* Proceed to create the physical volume then the volume group::
-
-   pvcreate /dev/loop2
-   vgcreate cinder-volumes /dev/loop2
+  dd if=/dev/zero of=/var/lib/nova/cinder-volumes.img bs=1M seek=20k count=0
+  vgcreate cinder-volumes $(losetup --show -f /var/lib/nova/cinder-volumes.img)
 
 * Update /etc/rc.local as follows to enable this volume upon reboot.
 
@@ -636,11 +619,11 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart the cinder services::
 
-   cd /etc/init.d/; for i in $( ls cinder-* ); do sudo service $i restart; done
+   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do sudo service $i restart; done
 
 * Verify if cinder services are running::
 
-   cd /etc/init.d/; for i in $( ls cinder-* ); do sudo service $i status; done
+   cd /etc/init.d/; for i in $( ls openstack-cinder-* ); do sudo service $i status; done
 
 8. Horizon
 ===========
