@@ -57,12 +57,6 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    rpm -ihv epel-release-6-8.noarch.rpm
    yum --enablerepo=epel install perl -y
 
-
-* Update your system::
-
-   yum update
-   yum upgrade
-
 2.2.Networking
 ------------
 
@@ -79,6 +73,10 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    BOOTPROTO=static
    IPADDR=10.10.1.200
    NETMASK=255.255.255.0
+   
+* Set the hostname in /etc/hosts::
+
+   10.127.1.200 <hostname>
 
 * Restart the networking service::
 
@@ -89,6 +87,10 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    download nvp-ovs-<version_string>-rhel61_x86_64.gz
    tar -xzvf nvp-ovs*.gz
    rpm -ihv kmod*.rpm openvswitch-*.rpm
+   
+   chkconfig openvswitch on
+   service openvswitch start
+   
    rpm -ihv nicira-ovs-hypervisor-node*.rpm
    ovs-integrate nics-to-bridge eth1
   
@@ -132,21 +134,37 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    # an ifconfig should reveal eth0, eth1 interfaces that do not have IP addresses as well as breth0 and breth1 interfaces that do have IP addresses
    # you should be able to ping your upstream gateway 10.127.1.1, etc.
 
-2.3. MySQL & RabbitMQ
-------------
+2.3. MySQL, RabbitMQ & NTP
+---------------------------
 
 * Install MySQL and specify a password for the root user::
 
    yum install -y mysql-server python-mysqldb
+   chkconfig mysqld on
+   service mysqld start
+   mysqladmin password nicira123
 
 * Install RabbitMQ::
 
    yum install -y rabbitmq-server 
+   chkconfig rabbitmq-server on
+   service rabbitmq-server start
 
 * Install NTP service::
 
    yum install -y ntp
+   chkconfig ntpd on
+   service ntpd start
  
+2.4. Virtualization Support
+----------------------------
+
+* Install libvirtd
+
+   yum install -y @virtualization libvirt
+   chkconfig libvirtd on
+   service libvirtd start
+   
 2.5. Others
 -------------------
 
@@ -306,13 +324,13 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
    
 * Install the Quantum components::
 
-   install -y quantum-server quantum-plugin-nicira dnsmasq quantum-dhcp-agent 
+   yum install -y openstack-quantum openstack-quantum-nicira dnsmasq 
 
 * Create a database::
 
    mysql -u root -p
-   CREATE DATABASE quantum;
-   GRANT ALL ON quantum.* TO 'quantumUser'@'%' IDENTIFIED BY 'quantumPass';
+   CREATE DATABASE nvp_quantum;
+   GRANT ALL ON nvp_quantum.* TO 'quantumUser'@'%' IDENTIFIED BY 'quantumPass';
    quit; 
 
 * Verify all Quantum components are running::
