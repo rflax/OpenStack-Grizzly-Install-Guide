@@ -324,6 +324,8 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
    # under [DEFAULT] section
    core_plugin = quantum.plugins.nicira.nicira_nvp_plugin.QuantumPlugin.NvpPluginV2
+   
+   allow_overlapping_ips = True
 
    # under [keystone_authtoken] section
    [keystone_authtoken]
