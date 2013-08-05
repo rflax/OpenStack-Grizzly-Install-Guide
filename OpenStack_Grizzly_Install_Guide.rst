@@ -319,6 +319,11 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 * Verify all Quantum components are running::
 
    cd /etc/init.d/; for i in $( ls quantum-* ); do sudo service $i status; done
+   
+   
+* Edit the /etc/default/quantum-server file::
+
+   make sure the QUANTUM_PLUGIN_CONFIG is configured for /etc/quantum/plugins/nicira/nvp.ini
 
 * Edit the /etc/quantum/quantum.conf file::
 
