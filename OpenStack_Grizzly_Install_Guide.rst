@@ -558,7 +558,7 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 
 * Restart nova-* services::
 
-   cd /etc/init.d/; for i in $( ls openstack-nova-* ); do sudo service $i restart; done   
+   cd /etc/init.d/; for i in $( ls nova-* ); do sudo service $i restart; done   
 
 * Check for the smiling faces on nova-* services to confirm your installation::
 
