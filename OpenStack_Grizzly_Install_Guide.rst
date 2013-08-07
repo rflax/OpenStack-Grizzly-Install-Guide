@@ -65,16 +65,16 @@ This OpenStack Grizzly Install Guide is an easy and tested way to create your ow
 * Only one NIC should have an internet access (/etc/network/interfaces) :: 
 
    #For Exposing OpenStack API over the internet - management network
-   auto eth1
-   iface eth1 inet static
+   auto eth0
+   iface eth0 inet static
    address 10.127.1.200
    netmask 255.255.255.0
    gateway 10.127.1.1
    dns-nameservers 8.8.8.8
 
    #Not internet connected(used for OpenStack management) - data network
-   auto eth0
-   iface eth0 inet static
+   auto eth1
+   iface eth1 inet static
    address 10.10.1.200
    netmask 255.255.255.0
 
